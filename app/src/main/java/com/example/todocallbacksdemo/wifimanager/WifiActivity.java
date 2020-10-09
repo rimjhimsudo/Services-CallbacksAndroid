@@ -1,4 +1,4 @@
-package com.example.todocallbacksdemo;
+package com.example.todocallbacksdemo.wifimanager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,14 +13,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.todocallbacksdemo.MyService;
+import com.example.todocallbacksdemo.R;
+
 
 /*
 NOTE :
 this activity is demo for service implementation
  */
-public class MainActivity2 extends AppCompatActivity implements View.OnClickListener {
+public class WifiActivity extends AppCompatActivity implements View.OnClickListener {
     private Intent serviceIntent;
-    private MyService myService;
+    private WifiService mywifiService;
     private boolean isServiceBound; //to check whther service is bound or not
     private ServiceConnection serviceConnection; //needs to be initialsed and this happens on line 53
 
@@ -30,7 +33,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_wifi);
         Log.d("Line15","onCreate in mainact2 : "+Thread.currentThread().getId());
 
         //views
@@ -46,7 +49,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         serviceIntent.putExtra("hello",1);
         //later put it onclick of button
         startService(serviceIntent);
-       // stopService(serviceIntent);
+        // stopService(serviceIntent);
 
     }
 
@@ -54,11 +57,11 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch(v.getId()){
             case R.id.btn_generatenum : getandShowRandomNum();
-            break;
+                break;
             case R.id.btn_bound : bindService();
-            break;
+                break;
             case R.id.btn_unbound : unbindservice();
-            break;
+                break;
 
         }
     }
@@ -69,8 +72,8 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void onServiceConnected(ComponentName name, IBinder iBinder) {
                     //now we got service instance in IBinder so we initilaised myservice here using IBinder
-                    MyService.MyServiceBinder myServiceBinder= (MyService.MyServiceBinder) iBinder;
-                    myService=myServiceBinder.getService(); //myService got initialised
+                    WifiService.MyWifiServiceBinder mywifiServiceBinder= (WifiService.MyWifiServiceBinder) iBinder;
+                    mywifiService= mywifiServiceBinder.getService(); //myService got initialised
                     isServiceBound=true;
                     Log.d("Line64","OnserviceConnected"+isServiceBound);
                 }
@@ -95,8 +98,8 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     }
     private  void getandShowRandomNum(){
         if(isServiceBound){
-        int num=myService.getRandomNum();
-        Toast.makeText(this,"number is : "+num,Toast.LENGTH_LONG).show();
+            int num=mywifiService.getRandomNum();
+            Toast.makeText(this,"number is : "+num,Toast.LENGTH_LONG).show();
         }
         else{ Toast.makeText(this,"Services in not bound",Toast.LENGTH_LONG).show();
         }

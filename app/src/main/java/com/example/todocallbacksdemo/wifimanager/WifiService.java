@@ -1,4 +1,6 @@
-package com.example.todocallbacksdemo;
+package com.example.todocallbacksdemo.wifimanager;
+
+
 
 import android.app.Service;
 import android.content.Intent;
@@ -8,10 +10,12 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.todocallbacksdemo.Extraclass;
+
 import java.util.Random;
 
 // generates random number every 1 sec in service and returns random number when invoked by activity
-public class MyService extends Service implements Extraclass.MyListener{
+public class WifiService extends Service implements Extraclass.MyListener{
     //it is the method that starts whenevr sevice starts
     //service runs on same thread by default (proof: i got same thread id in logs)
     private int randomNum;
@@ -28,12 +32,12 @@ public class MyService extends Service implements Extraclass.MyListener{
 
     //to return  Service instance we neeed IBinder
     //implement IBinder or extend Binder(abstract class) is same
-    class MyServiceBinder extends Binder{
-        public MyService getService(){
-            return MyService.this;
+    class MyWifiServiceBinder extends Binder{
+        public WifiService getService(){
+            return WifiService.this;
         }
     }
-    private IBinder iBinder=new MyServiceBinder();
+    private IBinder iBinder=new MyWifiServiceBinder();
     //comes in act when we make boundservice
     @Nullable
     @Override
@@ -45,7 +49,7 @@ public class MyService extends Service implements Extraclass.MyListener{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Line14","in start command"+Thread.currentThread().getId());
-       // stopSelf(); //one way of stopping service
+        // stopSelf(); //one way of stopping service
         //another is to invoke stopService() froom other component
         //start of service
         isRandomGeneratorOn=true;
@@ -60,10 +64,10 @@ public class MyService extends Service implements Extraclass.MyListener{
         new Thread(new Runnable() {
             @Override
             public void run() {
-                 startRandomGenNum();
+                startRandomGenNum();
             }
         }).start();
-
+        //stop self or stop sevice frrom somewhere - IMPORTANT
         return START_STICKY;
         //means yes auto restart and no intent delivery ??
         //return super.onStartCommand(intent, flags, startId);
