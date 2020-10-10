@@ -13,8 +13,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.todocallbacksdemo.MyService;
 import com.example.todocallbacksdemo.R;
+import com.example.todocallbacksdemo.wifimanager.service.WifiService;
 
 
 /*
@@ -45,10 +45,11 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
         btnBoundService.setOnClickListener(this);
 
         //android recommends always creating explcit intents
-        serviceIntent=new Intent(getApplicationContext(),MyService.class);
+        serviceIntent=new Intent(getApplicationContext(),WifiService.class);
         serviceIntent.putExtra("hello",1);
         //later put it onclick of button
-        startService(serviceIntent);
+        //startService(serviceIntent);
+        startForegroundService(serviceIntent); // now for foregrouung create notification
         // stopService(serviceIntent);
 
     }
