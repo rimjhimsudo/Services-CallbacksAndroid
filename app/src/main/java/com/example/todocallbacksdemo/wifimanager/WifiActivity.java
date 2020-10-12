@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -57,7 +58,7 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch(v.getId()){
-            case R.id.btn_generatenum : getandShowRandomNum();
+            case R.id.btn_generatenum : getpeerList();
                 break;
             case R.id.btn_bound : bindService();
                 break;
@@ -97,13 +98,18 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
 
         }
     }
-    private  void getandShowRandomNum(){
+    private  void getpeerList(){
         if(isServiceBound){
-            int num=mywifiService.getRandomNum();
-            Toast.makeText(this,"number is : "+num,Toast.LENGTH_LONG).show();
+            WifiP2pDeviceList peerList =mywifiService.getmPeerList();
+            Toast.makeText(this,""+peerList,Toast.LENGTH_LONG).show(); //got the list,hurray
         }
         else{ Toast.makeText(this,"Services in not bound",Toast.LENGTH_LONG).show();
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(serviceIntent);
+    }
 }

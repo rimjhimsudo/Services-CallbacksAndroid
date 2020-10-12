@@ -2,26 +2,40 @@ package com.example.todocallbacksdemo.wifimanager.service;
 
 
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.example.todocallbacksdemo.Extraclass;
 import com.example.todocallbacksdemo.R;
+import com.example.todocallbacksdemo.wifimanager.broadcast.WifiDirectBroadcast;
+import com.example.todocallbacksdemo.wifimanager.utils.WiFiP2PManagerUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 // generates random number every 1 sec in service and returns random number when invoked by activity
-public class WifiService extends Service implements Extraclass.MyListener{
+public class WifiService extends Service implements WifiPeersListener.MyListListener1{
+    private static final String TAG = WifiService.class.getSimpleName()+"TAG";
     //it is the method that starts whenevr sevice starts
     //service runs on same thread by default (proof: i got same thread id in logs)
     private int randomNum;
@@ -29,15 +43,26 @@ public class WifiService extends Service implements Extraclass.MyListener{
     private final int MIN=0;
     private final int MAX=100;
     //
-    Extraclass extraclass;
 
-    //
     private static final String CHANNEL_ID = "1000";
+    private WiFiP2PManagerUtil mWiFiP2PManagerUtil;
+    BroadcastReceiver broadcastReceiver;
+    IntentFilter intentFilter;
+    private WifiP2pDeviceList mPeerList;
 
-    @Override
-    public void getnums(int number) {
-        Log.d("NUMBER","reached");
-    }
+
+   @Override
+   public void onRetrievelist(WifiP2pDeviceList peerslist) {
+        this.mPeerList=peerslist;
+        Log.d(TAG,"inside onRetrievelist ");
+       Log.d(TAG, "" + peerslist.getDeviceList().size());
+       /*if(peerslist.size()!=0){
+           for(WifiP2pDevice device: peerslist){
+               Log.d(TAG,"deviceAddress :"+device.deviceAddress+"deviceName : "+device.deviceName);
+           }
+       }*/
+
+   }
 
     //to return  Service instance we neeed IBinder
     //implement IBinder or extend Binder(abstract class) is same
@@ -58,6 +83,14 @@ public class WifiService extends Service implements Extraclass.MyListener{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
+        mWiFiP2PManagerUtil = WiFiP2PManagerUtil.getInstance();
+        mWiFiP2PManagerUtil.getWifiManager().setWifiEnabled(true);
+        broadcastReceiver=new WifiDirectBroadcast(mWiFiP2PManagerUtil,this);
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
         Notification notification =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setContentTitle("WiFi Direct")
@@ -66,6 +99,7 @@ public class WifiService extends Service implements Extraclass.MyListener{
                         .setSmallIcon(R.drawable.ic_launcher_background)
                         .build();
         Log.d("Line14","in start command"+Thread.currentThread().getId());
+
         // stopSelf(); //one way of stopping service
         //another is to invoke stopService() froom other component
         //start of service
@@ -75,8 +109,6 @@ public class WifiService extends Service implements Extraclass.MyListener{
         int num=intent.getIntExtra("hello",0);
         Log.d("Line55",""+"intent extra "+num);
         //code for interface implementation
-        extraclass=new Extraclass(this);
-        extraclass.hello();
         //doing it on different thrrrad as service runs on same thread as activity so to avoid "app not responding"
         new Thread(new Runnable() {
             @Override
@@ -86,13 +118,17 @@ public class WifiService extends Service implements Extraclass.MyListener{
         }).start();
         //stop self or stop sevice from somewhere - IMPORTANT
         startForeground(1, notification);
-        return START_STICKY;
-        //means yes auto restart and no intent delivery ??
+        registerReceiver(broadcastReceiver, intentFilter);
+        //mPeerList= new ArrayList<>();
+        //wifiPeersListener=new WifiPeersListener(mPeerList,this);
+        return START_STICKY; //means yes auto restart and no intent delivery
         //return super.onStartCommand(intent, flags, startId);
     }
 
+
+
     //start random generator method
-    private void startRandomGenNum(){
+    public void startRandomGenNum(){
         while(isRandomGeneratorOn){
             try {
                 Thread.sleep(1000); //so that it gnearted after 1 sec and we slow down random numbers  generation
@@ -108,14 +144,18 @@ public class WifiService extends Service implements Extraclass.MyListener{
         isRandomGeneratorOn=false;
     }
     //methods return randomenum to activity
-    public int getRandomNum(){
+    /*public int getRandomNum(){
         return randomNum;
+    }*/
+    public WifiP2pDeviceList getmPeerList(){
+        return mPeerList;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         stopRandomGenNum(); //if not called then just destroy app and service stops
+        unregisterReceiver(broadcastReceiver);
         Log.d("Line29","destroyed");
     }
 

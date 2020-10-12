@@ -14,18 +14,27 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
+
+import com.example.todocallbacksdemo.wifimanager.service.WifiPeersListener;
+import com.example.todocallbacksdemo.wifimanager.service.WifiService;
+import com.example.todocallbacksdemo.wifimanager.utils.WiFiP2PManagerUtil;
 //wifi direct works on radiowaves
 
-public class WifiDirectBroadcast extends BroadcastReceiver {
+public class WifiDirectBroadcast extends BroadcastReceiver{
     private static final String TAG = WifiDirectBroadcast.class.getSimpleName()+"TAG";
     //private static final int PERMSSION = 2;
-    private WifiP2pManager wifiP2pManager;
-    private WifiP2pManager.Channel channel;
+    private WiFiP2PManagerUtil wiFiP2PManagerUtil;
+    private WifiPeersListener.MyListListener1 myListListener1;
+    //WifiService.PeersListenerToBroadcast peersListenerToBroadcast;
    // private MainActivity mainActivity;
 
-    public WifiDirectBroadcast(WifiP2pManager wifiP2pManager, WifiP2pManager.Channel channel) {
-        this.wifiP2pManager = wifiP2pManager;
-        this.channel = channel;
+    public WifiDirectBroadcast(WiFiP2PManagerUtil wiFiP2PManagerUtil,WifiPeersListener.MyListListener1 myListListener1) {
+        this.wiFiP2PManagerUtil=wiFiP2PManagerUtil;
+        this.myListListener1=myListListener1;
+        //this.peersListenerToBroadcast=peersListenerToBroadcast;
+
+        /*this.wifiP2pManager = wifiP2pManager;
+        this.channel = channel;*/
        // this.mainActivity = mainActivity;
     }
 
@@ -39,6 +48,21 @@ public class WifiDirectBroadcast extends BroadcastReceiver {
                 Toast.makeText(context, "WIFI direct is on", Toast.LENGTH_LONG).show();
                 //mainActivity.wifiDirectstatus.setText("wifi direct is ON");g.d
                 Log.d(TAG,"wifi direct is on");
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(context, "Needed location permission!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                wiFiP2PManagerUtil.wifiP2PManager().discoverPeers(wiFiP2PManagerUtil.getChannel(), new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG,"on success discovery called");
+                    }
+
+                    @Override
+                    public void onFailure(int reason) {
+                        Log.d(TAG,"on failure discovery called");
+                    }
+                });
             } else {
                 Toast.makeText(context, "WIFI direct is off", Toast.LENGTH_LONG).show();
                // mainActivity.wifiDirectstatus.setText("wifi direct is OFF");
@@ -47,16 +71,17 @@ public class WifiDirectBroadcast extends BroadcastReceiver {
             }
         }
         else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            if (wifiP2pManager != null) {
+            if (wiFiP2PManagerUtil.wifiP2PManager()!=null) {
                 if(ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
-                   // wifiP2pManager.requestPeers(channel, mainActivity.peerListListener);
-                    Log.d(TAG,"discovering peer and wifipeers :"+wifiP2pManager);
+                   // wiFiP2PManagerUtil.wifiP2PManager().requestPeers(wiFiP2PManagerUtil.getChannel(), mainActivity.peerListListener);
+                    Log.d(TAG,"discovering peer and wifipeers ");
+                    wiFiP2PManagerUtil.wifiP2PManager().requestPeers(wiFiP2PManagerUtil.getChannel(),new WifiPeersListener(myListListener1));
                 }
 
             }
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)){
-            if(wifiP2pManager==null){
+            if(wiFiP2PManagerUtil.wifiP2PManager()==null){
                 Log.d(TAG,"iside wifip2p manger null");
                 return;
             }
@@ -64,7 +89,7 @@ public class WifiDirectBroadcast extends BroadcastReceiver {
             Log.d(TAG, " line no 60 : "+networkInfo.getExtraInfo()); //coming null
             Log.d(TAG, " line no 61 : "+networkInfo.isConnected());
             if(networkInfo.isConnected()){
-                //wifiP2pManager.requestConnectionInfo(channel,mainActivity.connectionInfoListener);
+              //  wiFiP2PManagerUtil.wifiP2PManager().requestConnectionInfo(channel,mainActivity.connectionInfoListener);
                 //mainActivity.deviceConnectionStatus.setText("status changed-device connected");
                 Log.d(TAG,"status changed-device connected");
             }
@@ -80,6 +105,10 @@ public class WifiDirectBroadcast extends BroadcastReceiver {
 
     }
 
+    //@Override
+   /* public void getListener(WifiPeersListener wifiPeersListener) {
+        this.wifiPeersListener=wifiPeersListener;
+    }*/
 }
 
 
