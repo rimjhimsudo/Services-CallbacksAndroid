@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
+import com.example.todocallbacksdemo.wifimanager.service.ConnectionInfoListener;
 import com.example.todocallbacksdemo.wifimanager.service.WifiPeersListener;
 import com.example.todocallbacksdemo.wifimanager.service.WifiService;
 import com.example.todocallbacksdemo.wifimanager.utils.WiFiP2PManagerUtil;
@@ -82,14 +83,14 @@ public class WifiDirectBroadcast extends BroadcastReceiver{
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)){
             if(wiFiP2PManagerUtil.wifiP2PManager()==null){
-                Log.d(TAG,"iside wifip2p manger null");
+                Log.d(TAG,"inside wifip2p manger null");
                 return;
             }
             NetworkInfo networkInfo=intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
             Log.d(TAG, " line no 60 : "+networkInfo.getExtraInfo()); //coming null
             Log.d(TAG, " line no 61 : "+networkInfo.isConnected());
             if(networkInfo.isConnected()){
-              //  wiFiP2PManagerUtil.wifiP2PManager().requestConnectionInfo(channel,mainActivity.connectionInfoListener);
+               wiFiP2PManagerUtil.wifiP2PManager().requestConnectionInfo(wiFiP2PManagerUtil.getChannel(), new ConnectionInfoListener());
                 //mainActivity.deviceConnectionStatus.setText("status changed-device connected");
                 Log.d(TAG,"status changed-device connected");
             }

@@ -12,8 +12,10 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -27,8 +29,11 @@ import androidx.core.app.NotificationCompat;
 import com.example.todocallbacksdemo.Extraclass;
 import com.example.todocallbacksdemo.R;
 import com.example.todocallbacksdemo.wifimanager.broadcast.WifiDirectBroadcast;
+import com.example.todocallbacksdemo.wifimanager.model.ClientThread;
+import com.example.todocallbacksdemo.wifimanager.model.ServerThread;
 import com.example.todocallbacksdemo.wifimanager.utils.WiFiP2PManagerUtil;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -49,6 +54,11 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
     BroadcastReceiver broadcastReceiver;
     IntentFilter intentFilter;
     private WifiP2pDeviceList mPeerList;
+    WifiP2pDevice itemDevice;
+    boolean start_server=false,connect_server=false;
+    ServerThread serverThread;
+    ClientThread clientThread;
+    InetAddress inetAddress;
 
 
    @Override
@@ -117,6 +127,9 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
             }
         }).start();
         //stop self or stop sevice from somewhere - IMPORTANT
+        /*if(itemDevice!=null){
+            connection();
+        }*/
         startForeground(1, notification);
         registerReceiver(broadcastReceiver, intentFilter);
         //mPeerList= new ArrayList<>();
@@ -125,6 +138,27 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
         //return super.onStartCommand(intent, flags, startId);
     }
 
+    public void connection() {
+        WifiP2pManager.ConnectionInfoListener connectionInfoListener=new WifiP2pManager.ConnectionInfoListener() {
+            @Override
+            public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
+                final InetAddress groupOwnerAddress=wifiP2pInfo.groupOwnerAddress;
+                inetAddress=groupOwnerAddress;
+                if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner){
+                   // deviceConnectionStatus.setText("host");
+                    Log.d("INSIDE157", "called"); // 1 TIME
+                    //thread class instantiated and started
+                    start_server=true;
+                }
+                else if(wifiP2pInfo.groupFormed){
+                    //deviceConnectionStatus.setText("client");
+                    Log.d("INSIDE164", "called"); ///1 TIME
+                    connect_server=true;
+
+                }
+            }
+        };
+    }
 
 
     //start random generator method
@@ -153,7 +187,30 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
     public WiFiP2PManagerUtil getmWiFiP2PManagerUtil(){
         return mWiFiP2PManagerUtil;
     }
+    public void setitemDevice(WifiP2pDevice itemDevice){
+        this.itemDevice=itemDevice;
+        Log.d("TAGTAG1","line179");
+        Log.d("TAGTAG1",""+itemDevice.deviceName);
+        WifiP2pConfig config=new WifiP2pConfig();
+        config.deviceAddress=itemDevice.deviceAddress;
+        if(ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED){
+            mWiFiP2PManagerUtil.wifiP2PManager().connect(mWiFiP2PManagerUtil.getChannel(), config, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    Log.d("TAGTAG1","aagaya");
+                    Toast.makeText(getApplicationContext(),"device connnected to",Toast.LENGTH_LONG).show();
+                }
 
+                @Override
+                public void onFailure(int i) {
+
+                    Toast.makeText(getApplicationContext(),"device disconnected",Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+
+    }
     @Override
     public void onDestroy() {
         super.onDestroy();

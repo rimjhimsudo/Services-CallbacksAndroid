@@ -79,7 +79,8 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
         devicesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                final WifiP2pDevice itemDevice=devicesArray[i];
+                mywifiService.setitemDevice(devicesArray[i]);
+               /* final WifiP2pDevice itemDevice=devicesArray[i];
                 WifiP2pConfig config=new WifiP2pConfig();
                 config.deviceAddress=itemDevice.deviceAddress;
                 if(ActivityCompat.checkSelfPermission(WifiActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED){
@@ -95,7 +96,7 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
                             Toast.makeText(getApplicationContext(),"device disconnected",Toast.LENGTH_LONG).show();
                         }
                     });
-                }
+                }*/
             }
         });
     }
@@ -150,6 +151,10 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
             peerList =mywifiService.getmPeerList();
             Toast.makeText(this,""+peerList,Toast.LENGTH_LONG).show(); //got the list,hurray
             //peers=peerList.getDeviceList();
+            if(peerList==null){
+                Log.d("TAGTAG","line156");
+                return;
+            }
             if(!peerList.getDeviceList().equals(peers)){
                 peers.clear();
                 peers.addAll(peerList.getDeviceList());
@@ -170,6 +175,7 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     }
+
 
     @Override
     protected void onDestroy() {
