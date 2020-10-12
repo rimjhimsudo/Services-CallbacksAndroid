@@ -150,6 +150,9 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
     public WifiP2pDeviceList getmPeerList(){
         return mPeerList;
     }
+    public WiFiP2PManagerUtil getmWiFiP2PManagerUtil(){
+        return mWiFiP2PManagerUtil;
+    }
 
     @Override
     public void onDestroy() {
