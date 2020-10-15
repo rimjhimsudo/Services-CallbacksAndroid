@@ -26,12 +26,16 @@ public class WifiDirectBroadcast extends BroadcastReceiver{
     //private static final int PERMSSION = 2;
     private WiFiP2PManagerUtil wiFiP2PManagerUtil;
     private WifiPeersListener.MyListListener1 myListListener1;
+    private ConnectionInfoListener.ClientInterface clientInterface;
+    private ConnectionInfoListener.ServerInterface serverInterface;
     //WifiService.PeersListenerToBroadcast peersListenerToBroadcast;
    // private MainActivity mainActivity;
 
-    public WifiDirectBroadcast(WiFiP2PManagerUtil wiFiP2PManagerUtil,WifiPeersListener.MyListListener1 myListListener1) {
+    public WifiDirectBroadcast(WiFiP2PManagerUtil wiFiP2PManagerUtil,WifiPeersListener.MyListListener1 myListListener1,ConnectionInfoListener.ClientInterface clientInterface, ConnectionInfoListener.ServerInterface serverInterface) {
         this.wiFiP2PManagerUtil=wiFiP2PManagerUtil;
         this.myListListener1=myListListener1;
+        this.serverInterface=serverInterface;
+        this.clientInterface=clientInterface;
         //this.peersListenerToBroadcast=peersListenerToBroadcast;
 
         /*this.wifiP2pManager = wifiP2pManager;
@@ -90,7 +94,8 @@ public class WifiDirectBroadcast extends BroadcastReceiver{
             Log.d(TAG, " line no 60 : "+networkInfo.getExtraInfo()); //coming null
             Log.d(TAG, " line no 61 : "+networkInfo.isConnected());
             if(networkInfo.isConnected()){
-               wiFiP2PManagerUtil.wifiP2PManager().requestConnectionInfo(wiFiP2PManagerUtil.getChannel(), new ConnectionInfoListener());
+               wiFiP2PManagerUtil.wifiP2PManager().requestConnectionInfo(wiFiP2PManagerUtil.getChannel(),new ConnectionInfoListener(serverInterface,clientInterface));
+
                 //mainActivity.deviceConnectionStatus.setText("status changed-device connected");
                 Log.d(TAG,"status changed-device connected");
             }

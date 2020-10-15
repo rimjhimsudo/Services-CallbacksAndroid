@@ -65,6 +65,7 @@ public class ClientThread  extends Thread{
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Log.d("COOL","e.getMessage"+e.getMessage());
                 }
             }
         }).start();

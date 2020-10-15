@@ -22,12 +22,14 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.example.todocallbacksdemo.Extraclass;
 import com.example.todocallbacksdemo.R;
+import com.example.todocallbacksdemo.wifimanager.WifiActivity;
 import com.example.todocallbacksdemo.wifimanager.broadcast.WifiDirectBroadcast;
 import com.example.todocallbacksdemo.wifimanager.model.ClientThread;
 import com.example.todocallbacksdemo.wifimanager.model.ServerThread;
@@ -39,7 +41,7 @@ import java.util.List;
 import java.util.Random;
 
 // generates random number every 1 sec in service and returns random number when invoked by activity
-public class WifiService extends Service implements WifiPeersListener.MyListListener1{
+public class WifiService extends Service implements WifiPeersListener.MyListListener1 , ConnectionInfoListener.ServerInterface, ConnectionInfoListener.ClientInterface{
     private static final String TAG = WifiService.class.getSimpleName()+"TAG";
     //it is the method that starts whenevr sevice starts
     //service runs on same thread by default (proof: i got same thread id in logs)
@@ -59,6 +61,7 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
     ServerThread serverThread;
     ClientThread clientThread;
     InetAddress inetAddress;
+    String msg;
 
 
    @Override
@@ -73,6 +76,21 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
        }*/
 
    }
+    @Override
+    public void setClientThread(ClientThread clientThread) {
+        this.clientThread=clientThread;
+        Log.d(TAG,"line78"+this.clientThread);
+        // this.clientThread.sendMessage("hellofromclient");
+
+    }
+
+    @Override
+    public void setServerThread(ServerThread serverThread) {
+        this.serverThread=serverThread;
+        Log.d("COOL","line84"+this.serverThread); //working ??
+        Log.d("COOL",serverThread.getName()); //working
+       this.serverThread.sendMessage("hello"); //not working
+    }
 
     //to return  Service instance we neeed IBinder
     //implement IBinder or extend Binder(abstract class) is same
@@ -95,7 +113,7 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
         createNotificationChannel();
         mWiFiP2PManagerUtil = WiFiP2PManagerUtil.getInstance();
         mWiFiP2PManagerUtil.getWifiManager().setWifiEnabled(true);
-        broadcastReceiver=new WifiDirectBroadcast(mWiFiP2PManagerUtil,this);
+        broadcastReceiver=new WifiDirectBroadcast(mWiFiP2PManagerUtil,this,this,this);
         intentFilter = new IntentFilter();
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -130,6 +148,10 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
         /*if(itemDevice!=null){
             connection();
         }*/
+       /* if(serverThread!=null){
+            serverThread.sendMessage("HELLO"); //not working
+
+        }*/
         startForeground(1, notification);
         registerReceiver(broadcastReceiver, intentFilter);
         //mPeerList= new ArrayList<>();
@@ -137,7 +159,7 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
         return START_STICKY; //means yes auto restart and no intent delivery
         //return super.onStartCommand(intent, flags, startId);
     }
-
+    //unused
     public void connection() {
         WifiP2pManager.ConnectionInfoListener connectionInfoListener=new WifiP2pManager.ConnectionInfoListener() {
             @Override
@@ -186,6 +208,17 @@ public class WifiService extends Service implements WifiPeersListener.MyListList
     }
     public WiFiP2PManagerUtil getmWiFiP2PManagerUtil(){
         return mWiFiP2PManagerUtil;
+    }
+    public ClientThread getClientThread(){
+        Log.d("NOW","line200"+this.clientThread);
+        return this.clientThread;
+    }
+    public ServerThread getServerThread(){
+        Log.d("NOW","line204"+this.serverThread);
+        return this.serverThread;
+    }
+    public void getmsg(String msg){
+        this.msg=msg;
     }
     public void setitemDevice(WifiP2pDevice itemDevice){
         this.itemDevice=itemDevice;

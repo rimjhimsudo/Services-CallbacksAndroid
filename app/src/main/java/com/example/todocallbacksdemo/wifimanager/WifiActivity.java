@@ -1,18 +1,13 @@
 package com.example.todocallbacksdemo.wifimanager;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
-import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -20,10 +15,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.todocallbacksdemo.R;
+import com.example.todocallbacksdemo.wifimanager.model.ClientThread;
+import com.example.todocallbacksdemo.wifimanager.model.ServerThread;
+import com.example.todocallbacksdemo.wifimanager.service.ConnectionInfoListener;
 import com.example.todocallbacksdemo.wifimanager.service.WifiService;
 import com.example.todocallbacksdemo.wifimanager.utils.WiFiP2PManagerUtil;
 
@@ -45,10 +44,13 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
     WifiP2pDevice[] devicesArray;
     ListView devicesList;
     WiFiP2PManagerUtil wiFiP2PManagerUtil;
+    ClientThread clientThread;
+    ServerThread serverThread;
 
 
     //views
-    Button btnGen , btnBoundService, btnUnboundService;
+    Button btnGen , btnBoundService, btnUnboundService, btnSendData;
+    EditText etTextData;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +65,9 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
         btnUnboundService.setOnClickListener(this);
         btnBoundService.setOnClickListener(this);
         devicesList=findViewById(R.id.listview);
+        etTextData=findViewById(R.id.et_data);
+        btnSendData=findViewById(R.id.btn_send_data);
+        btnSendData.setOnClickListener(this);
         setclickitem();
 
         //android recommends always creating explcit intents
@@ -110,7 +115,25 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_unbound : unbindservice();
                 break;
+            case R.id.btn_send_data : sendDataOverSockets();
 
+        }
+    }
+
+    private void sendDataOverSockets() {
+        //call them when they are not null
+        clientThread=mywifiService.getClientThread();
+        serverThread=mywifiService.getServerThread();
+        String msg=etTextData.getText().toString();
+        //mywifiService.getmsg("hello");
+        //Log.d("NOW",serverThread.toString()+clientThread.toString()); //getting null
+        if(serverThread!=null){
+            serverThread.sendMessage("hellorimjhim");
+            Log.d("NOW","serverThreadcalled");
+        }
+        if(clientThread!=null){
+            clientThread.sendMessage("hellorimjhimclient");
+            Log.d("NOW","clientThreadcalled");
         }
     }
 
@@ -123,6 +146,8 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
                     WifiService.MyWifiServiceBinder mywifiServiceBinder= (WifiService.MyWifiServiceBinder) iBinder;
                     mywifiService= mywifiServiceBinder.getService(); //myService got initialised
                     wiFiP2PManagerUtil=mywifiService.getmWiFiP2PManagerUtil();
+                    /*clientThread=mywifiService.getClientThread();
+                    serverThread=mywifiService.getServerThread();*/
                     isServiceBound=true;
                     Log.d("Line64","OnserviceConnected"+isServiceBound);
                 }
@@ -181,5 +206,16 @@ public class WifiActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         stopService(serviceIntent);
+      /*  if (null != serverThread) {
+            serverThread.sendMessage("Disconnect");
+            serverThread.interrupt();
+            serverThread = null;
+        }
+        if (null != clientThread){
+            clientThread.sendMessage("Disconnect");
+            clientThread = null;
+        }*/
     }
+
+
 }

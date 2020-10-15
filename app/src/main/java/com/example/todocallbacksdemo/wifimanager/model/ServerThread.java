@@ -21,7 +21,7 @@ public class ServerThread extends Thread{
     public void sendMessage(final String message) {
         try {
             Log.d(TAG,"tempClientSocket:  not null");
-            if (null != tempClientSocket) {
+            if (null != tempClientSocket) { //check if its null
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -39,6 +39,7 @@ public class ServerThread extends Thread{
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Log.d("COOL","e.getMessage"+e.getMessage());
         }
     }
 
